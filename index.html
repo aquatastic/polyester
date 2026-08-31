@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>temu spiderman</title>
+
+<!-- ⭐ Favicon -->
+<link rel="icon" type="image/png" href="favicon.png">
+
 <style>
   body {
     margin: 0;
@@ -12,6 +16,7 @@
   canvas {
     display: block;
   }
+
   #ui {
     position: absolute;
     top: 10px;
@@ -20,14 +25,40 @@
     font-family: Arial, sans-serif;
     z-index: 10;
   }
+
+  /* ⭐ Top-right button */
+  #topButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.85);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    color: #000;
+    text-decoration: none;
+    z-index: 20;
+    transition: 0.2s;
+  }
+  #topButton:hover {
+    background: white;
+    transform: scale(1.05);
+  }
 </style>
 </head>
 <body>
 
+<!-- Left UI -->
 <div id="ui">
-  <h2>the temu spiderman</h2>
+  <h2>polyester engine</h2>
   <p>WASD to move • Click to grapple • SPACE = jump/cancel grapple</p>
 </div>
+
+<!-- ⭐ Top-right button -->
+<a id="topButton" href="https://aquatastic.github.io/AquaHub/" target="_blank">
+  AquaHub
+</a>
 
 <canvas id="gameCanvas"></canvas>
 
@@ -140,7 +171,7 @@ function updatePlayer() {
     player.vy = 0;
   }
 
-  // ⭐ NEW: rotation always clockwise, speed based on movement
+  // ⭐ Always spin clockwise, speed based on movement
   player.rotation += Math.abs(player.vx) * 0.05;
 }
 
