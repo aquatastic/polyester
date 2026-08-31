@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>temu spiderman</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  canvas {
+    display: block;
+  }
+  #ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: white;
+    font-family: Arial, sans-serif;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <h2>the temu spiderman</h2>
+  <p>WASD to move • Click to grapple • SPACE = jump/cancel grapple</p>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// Fullscreen canvas
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// Background image
+const bg = new Image();
+bg.src = "https://images.pexels.com/photos/38476542/pexels-photo-38476542.jpeg";
+
+// Spider-web overlay image
+const webImg = new Image();
+webImg.src = "https://i.ibb.co/CptvNxrw/CITYPNG-COM-HD-Spider-web-logo-PNG-1000x1000.png";
+
+// Player
+const player = {
+  x: canvas.width / 2,
+  y: canvas.height / 2,
+  vx: 0,
+  vy: 0,
+  r: 35,
+  speed: 0.4,
+  jumpForce: -10,
+  rotation: 0
+};
+
+const gravity = 0.4;
+const airControl = 0.25;
+const maxSpeed = 12;
+
+// Grapple
+let grapple = {
+  active: false,
+  x: 0,
+  y: 0,
+  pullStrength: 0.25
+};
+
+// Keys
+const keys = {};
+document.addEventListener("keydown", e => {
+  keys[e.key] = true;
+
+  if (e.key === " ") {
+    if (grapple.active) {
+      grapple.active = false;
+    } else {
+      player.vy = player.jumpForce;
+    }
+  }
+});
+
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+// Click to grapple
+canvas.addEventListener("mousedown", e => {
+  const rect = canvas.getBoundingClientRect();
+  grapple.x = e.clientX - rect.left;
+  grapple.y = e.clientY - rect.top;
+  grapple.active = true;
+});
+
+// Movement + physics
+function updatePlayer() {
+  if (keys["a"]) player.vx -= airControl;
+  if (keys["d"]) player.vx += airControl;
+  if (keys["w"]) player.vy -= airControl;
+  if (keys["s"]) player.vy += airControl;
+
+  player.vy += gravity;
+
+  if (grapple.active) {
+    const dx = grapple.x - player.x;
+    const dy = grapple.y - player.y;
+    const dist = Math.hypot(dx, dy);
+
+    const nx = dx / dist;
+    const ny = dy / dist;
+
+    player.vx += nx * grapple.pullStrength * 2;
+    player.vy += ny * grapple.pullStrength * 2;
+
+    if (dist < player.r) {
+      grapple.active = false;
+      player.vx *= 0.5;
+      player.vy *= 0.5;
+    }
+  }
+
+  player.x += player.vx;
+  player.y += player.vy;
+
+  player.vx = Math.max(-maxSpeed, Math.min(maxSpeed, player.vx));
+  player.vy = Math.max(-maxSpeed, Math.min(maxSpeed, player.vy));
+
+  if (player.x < player.r) player.x = player.r;
+  if (player.x > canvas.width - player.r) player.x = canvas.width - player.r;
+  if (player.y < player.r) player.y = player.r;
+  if (player.y > canvas.height - player.r) {
+    player.y = canvas.height - player.r;
+    player.vy = 0;
+  }
+
+  // ⭐ NEW: rotation always clockwise, speed based on movement
+  player.rotation += Math.abs(player.vx) * 0.05;
+}
+
+// Drawing
+function drawBackground() {
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+}
+
+function drawPlayer() {
+  ctx.fillStyle = "#ff4444";
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  const size = player.r * 2;
+
+  ctx.save();
+  ctx.translate(player.x, player.y);
+  ctx.rotate(player.rotation);
+  ctx.drawImage(webImg, -player.r, -player.r, size, size);
+  ctx.restore();
+}
+
+function drawGrapple() {
+  if (!grapple.active) return;
+
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(player.x, player.y);
+  ctx.lineTo(grapple.x, grapple.y);
+  ctx.stroke();
+}
+
+// Main loop
+function update() {
+  drawBackground();
+  updatePlayer();
+  drawGrapple();
+  drawPlayer();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+
+</body>
+</html>
